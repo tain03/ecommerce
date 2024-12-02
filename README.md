@@ -97,3 +97,20 @@
 ```bash
 git clone https://github.com/tain03/ecommerce.git
 cd ecommerce
+```
+
+### 2. Cài đặt các phụ thuộc:
+```bash
+mvn install
+```
+
+### 3. Cấu hình cơ sở dữ liệu:
+- Tạo cơ sở dữ liệu MySQL và cập nhật thông tin kết nối trong `application.properties`.
+- Dùng file ecommerce.sql để tạo dữ liệu mẫu.
+
+### 4. Chạy ứng dụng:
+```bash
+mvn spring-boot:run
+```
+
+Ứng dụng sẽ chạy trên `http://localhost:8080`.
