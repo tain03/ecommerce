@@ -110,3 +110,5 @@ mvn spring-boot:run
 ```
 
 Ứng dụng sẽ chạy trên `http://localhost:8080`.
+![image](https://github.com/user-attachments/assets/a0331d8f-7635-45d6-9521-3e0568cfe94f)
+
