@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">ShopEase - Your Online Shopping Destination</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+<!-- Navigation -->
+<header class="bg-green-500 shadow-md sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+        <div class="flex items-center justify-between w-full md:w-auto">
+            <div class="text-2xl font-bold text-white">ShopEase</div>
+            <div class="md:hidden">
+                <button id="mobile-menu-toggle" class="text-white focus:outline-none">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <nav id="main-nav" class="hidden md:flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6 w-full md:w-auto">
+            <a href="/" class="text-white hover:text-green-200 transition">Home</a>
+            <a href="/category/1" class="text-white hover:text-green-200 transition">Books</a>
+            <a href="/category/2" class="text-white hover:text-green-200 transition">Clothes</a>
+            <a href="/category/3" class="text-white hover:text-green-200 transition">Mobile Phones</a>
+            <a href="/category/4" class="text-white hover:text-green-200 transition">Laptops</a>
+            <a href="/category/5" class="text-white hover:text-green-200 transition">Shoes</a>
+            <a href="/category/6" class="text-white hover:text-green-200 transition">Electronics</a>
+
+            <a href="/cart" class="text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-full transition flex items-center">
+                <i class="fas fa-shopping-cart mr-2"></i>Cart
+            </a>
+        </nav>
+    </div>
+</header>
+
+<!-- Hero Section -->
+<section class="bg-green-500 text-white text-center py-20 px-4">
+    <div class="container mx-auto">
+        <h1 class="text-4xl md:text-5xl font-bold mb-4">Welcome to ShopEase</h1>
+        <p class="text-xl mb-8">Your one-stop shop for books, clothes, electronics, and more!</p>
+        <a href="#products" class="bg-white text-green-500 hover:bg-green-50 px-8 py-3 rounded-full font-bold transition transform hover:scale-105">
+            Shop Now
+        </a>
+    </div>
+</section>
+
+<!-- User Info and Errors -->
+<div class="container mx-auto px-4 mt-4">
+    <div th:if="${username != null}" class="bg-green-100 border-l-4 border-green-500 p-4 mb-4">
+        <p class="text-green-700">Welcome, <span th:text="${username}">User</span>!</p>
+    </div>
+
+    <div th:if="${error != null}" class="bg-red-100 border-l-4 border-red-500 p-4 mb-4">
+        <p class="text-red-700" th:text="${error}"></p>
+    </div>
+</div>
+
+<!-- Products Section -->
+<section id="products" class="container mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold text-center mb-10">All Products</h2>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div th:each="product : ${products}" class="bg-white rounded-lg shadow-md overflow-hidden transform transition hover:scale-105">
+            <img th:src="@{${product.imageUrl}}" alt="Product Image" class="w-full h-48 object-cover">
+            <div class="p-4">
+                <h3 th:text="${product.name}" class="font-bold text-lg mb-2"></h3>
+                <p th:text="'$' + ${product.price}" class="text-green-600 font-semibold mb-4"></p>
+                <form class="add-to-cart-form">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="number" name="quantity" value="1" min="1"
+                               class="w-16 p-2 border rounded text-center">
+                        <input type="hidden" name="productId" th:value="${product.id}">
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600 transition">
+                        Add to Cart
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popup Message -->
+<div id="popup-message"
+     class="fixed top-20 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 hidden">
+    Product added to cart successfully!
+</div>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-8">
+    <div class="container mx-auto text-center">
+        <p>&copy; 2024 ShopEase. All rights reserved.</p>
+    </div>
+</footer>
+
+<script>
+    // Mobile Menu Toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mainNav = document.getElementById('main-nav');
+
+    mobileMenuToggle.addEventListener('click', () => {
+        mainNav.classList.toggle('hidden');
+    });
+
+    // Handle AJAX for Add to Cart
+    document.querySelectorAll('.add-to-cart-form').forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            fetch('/cart/add', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to add to cart');
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    const popup = document.getElementById('popup-message');
+                    popup.style.display = 'block';
+                    setTimeout(() => {
+                        popup.style.display = 'none';
+                    }, 3000);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to add product to cart. Please try again.');
+                });
+        });
+    });
+</script>
+</body>
+</html>

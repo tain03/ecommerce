@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #4CAF50; /* Màu xanh lá */
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #45a049; /* Màu xanh lá đậm hơn khi hover */
+        }
+    </style>
+</head>
+<body>
+<h2>Login</h2>
+<div class="login-form">
+    <input type="text" id="username" placeholder="Username" required><br>
+    <input type="password" id="password" placeholder="Password" required><br>
+    <button onclick="redirectToHome()">Login</button>
+</div>
+
+<script>
+    function redirectToHome() {
+        const password = document.getElementById('password').value;
+
+        // Kiểm tra xem mật khẩu có bằng 2 không
+        if (password === '2') {
+            // Chuyển hướng đến /home
+            window.location.href = '/';
+        } else {
+            alert('Mật khẩu không đúng!'); // Hiển thị thông báo lỗi
+        }
+    }
+</script>
+</body>
+</html>
