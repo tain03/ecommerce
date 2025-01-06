@@ -26,7 +26,7 @@
    - Mỗi sản phẩm bao gồm các thông tin như tên, mô tả, giá, và số lượng trong kho.
    
 5. **Thanh toán và vận chuyển**:
-   - Hệ thống hỗ trợ các phương thức thanh toán (ví dụ: qua các dịch vụ như MoMo, ZaloPay).
+   - Hệ thống hỗ trợ các phương thức thanh toán.
    - Hệ thống cung cấp thông tin trạng thái giao hàng.
 
 ## Công nghệ sử dụng
@@ -47,27 +47,23 @@
    - **Spring Security**:
      - Bảo mật hệ thống, hỗ trợ xác thực người dùng và phân quyền truy cập.
 
-5. **Payment Integration**:
-   - **MoMo Payment Gateway, ZaloPay**:
-     - Tích hợp các dịch vụ thanh toán trực tuyến.
-
-6. **API Testing**:
+5. **API Testing**:
    - **JUnit, Mockito**:
      - Viết kiểm tra đơn vị cho các dịch vụ và repository trong Spring Boot.
 
-7. **Build & Dependency Management**:
+6. **Build & Dependency Management**:
    - **Maven**:
      - Quản lý thư viện và phụ thuộc của dự án.
 
-8. **Version Control**:
+7. **Version Control**:
    - **Git**:
      - Quản lý mã nguồn với GitHub hoặc GitLab.
 
-9. **Deployment**:
+8. **Deployment**:
    - **Docker**:
      - Đóng gói ứng dụng vào các container và triển khai hệ thống.
 
-10. **Other Tools**:
+8. **Other Tools**:
     - **Postman**: Kiểm thử API.
     - **Swagger**: Tạo tài liệu API tự động.
 
@@ -97,3 +93,25 @@
 ```bash
 git clone https://github.com/tain03/ecommerce.git
 cd ecommerce
+```
+
+### 2. Cài đặt các phụ thuộc:
+```bash
+mvn install
+```
+
+### 3. Cấu hình cơ sở dữ liệu:
+- Tạo cơ sở dữ liệu MySQL và cập nhật thông tin kết nối trong `application.properties`.
+- Dùng file ecommerce.sql để tạo dữ liệu mẫu.
+
+### 4. Chạy ứng dụng:
+```bash
+mvn spring-boot:run
+```
+
+Ứng dụng sẽ chạy trên `http://localhost:8080`.
+![image](https://github.com/user-attachments/assets/a0331d8f-7635-45d6-9521-3e0568cfe94f)
+![image](https://github.com/user-attachments/assets/d3c4682e-4ea0-49ad-8ab6-c80b2d8a1220)
+![image](https://github.com/user-attachments/assets/891ca948-e7cc-4d18-a5e9-828dbbc73303)
+![image](https://github.com/user-attachments/assets/40f54aa8-af90-499c-9b29-89863c6921c1)
+
