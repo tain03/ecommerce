@@ -21,35 +21,28 @@ public class CartService {
     private ProductRepository productRepository;
 
     @Autowired
-    private CartItemRepository cartItemRepository;  // Inject CartItemRepository
+    private CartItemRepository cartItemRepository;
 
-    // Lấy giỏ hàng của người dùng theo username
-    public Cart getCartByUserId(String username) {
-        return cartRepository.findByUserUsername(username)
+    public Cart getCartByUserId(Long userId) {
+        return cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
     }
 
-    // Thêm sản phẩm vào giỏ hàng
-    public void addToCart(String username, Long productId, int quantity) {
-        // Lấy giỏ hàng của người dùng
-        Cart cart = cartRepository.findByUserUsername(username)
+    public void addToCart(Long userId, Long productId, int quantity) {
+        Cart cart = cartRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Cart not found"));
 
-        // Lấy thông tin sản phẩm
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
-        // Kiểm tra xem sản phẩm đã tồn tại trong giỏ hàng chưa
         Optional<CartItem> existingCartItem = cart.getCartItems().stream()
                 .filter(cartItem -> cartItem.getProduct().getId().equals(productId))
                 .findFirst();
 
         if (existingCartItem.isPresent()) {
-            // Nếu đã tồn tại, cập nhật số lượng
             CartItem cartItem = existingCartItem.get();
             cartItem.setQuantity(cartItem.getQuantity() + quantity);
         } else {
-            // Nếu chưa tồn tại, tạo mới một CartItem và thêm vào giỏ hàng
             CartItem cartItem = new CartItem();
             cartItem.setCart(cart);
             cartItem.setProduct(product);
@@ -57,20 +50,25 @@ public class CartService {
             cart.getCartItems().add(cartItem);
         }
 
-        // Lưu giỏ hàng
         cartRepository.save(cart);
     }
 
-    // Xóa CartItem
     public void deleteCartItem(Long id) {
-        cartItemRepository.deleteById(id);  // Xóa CartItem theo ID
+        cartItemRepository.deleteById(id);
     }
 
-    // Cập nhật số lượng CartItem
     public void updateCartItemQuantity(Long id, int quantity) {
         CartItem cartItem = cartItemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cart item not found"));
-        cartItem.setQuantity(quantity);  // Cập nhật số lượng
-        cartItemRepository.save(cartItem);  // Lưu CartItem sau khi cập nhật
+        cartItem.setQuantity(quantity);
+        cartItemRepository.save(cartItem);
+    }
+
+    public void deleteAllCartItems(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        cartItemRepository.deleteAll(cart.getCartItems());
+        cart.getCartItems().clear();
+        cartRepository.save(cart);
     }
 }

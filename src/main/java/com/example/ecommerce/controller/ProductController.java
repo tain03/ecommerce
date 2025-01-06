@@ -20,4 +20,5 @@ public class ProductController {
     public List<Product> getProductsByCategory(@RequestParam Long categoryId) {
         return productService.getProductsByCategory(categoryId);
     }
+
 }

@@ -3,23 +3,247 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ShopEase - Shopping Cart</title>
+  <title>T-Shop - Shopping Cart</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
     body {
-      background-color: #f7fafc;
+      background-color: #FFBB94;
+    }
+    .dropdown:hover .dropdown-menu {
+      display: block;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      background-color: #FB9590;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+    .dropdown-menu a {
+      display: block;
+      padding: 8px 16px;
+      color: black;
+      text-decoration: none;
+    }
+    .dropdown-menu a:hover {
+      background-color: #DC586D;
+    }
+    header {
+      background-color: #A33737;
+    }
+    .bg-white {
+      background-color: #FFBB94;
+    }
+    .text-white {
+      color: #FFBB94;
+    }
+    .text-gray-800 {
+      color: #4C1D3D;
+    }
+    .bg-green-500 {
+      background-color: #852E4E;
+    }
+    .hover\:bg-green-600:hover {
+      background-color: #4C1D3D;
+    }
+    .hover\:text-green-200:hover {
+      color: #FFBB94;
+    }
+    .hover\:bg-green-50:hover {
+      background-color: #FB9590;
+    }
+    .border-gray-300 {
+      border-color: #DC586D;
+    }
+    .focus\:ring-green-500:focus {
+      ring-color: #852E4E;
+    }
+    .hover\:bg-red-600:hover {
+      background-color: #A33737;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.75);
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 10px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
     }
   </style>
+  <script>
+    function handleCheckout(event) {
+      event.preventDefault();
+
+      const formData = new FormData(event.target);
+      const data = Object.fromEntries(formData.entries());
+
+      // Gather product information from the cart
+      const cartItems = Array.from(document.querySelectorAll('tbody tr')).map(row => {
+        return {
+          name: row.querySelector('td:nth-child(1) span').innerText,
+          price: row.querySelector('td:nth-child(2)').innerText,
+          quantity: row.querySelector('td:nth-child(3) input').value,
+          total: row.querySelector('td:nth-child(4)').innerText
+        };
+      });
+
+      // Create HTML content for order details
+      let orderDetailsHtml = `
+        <h3 class="text-xl font-semibold mb-4">Shipping Information</h3>
+        <p><strong>Name:</strong> ${data.name}</p>
+        <p><strong>Address:</strong> ${data.address}</p>
+        <p><strong>Phone:</strong> ${data.phone}</p>
+        <h3 class="text-xl font-semibold mt-4 mb-4">Order Items</h3>
+        <table class="w-full">
+          <thead>
+            <tr>
+              <th class="p-2 text-left">Product</th>
+              <th class="p-2 text-right">Price</th>
+              <th class="p-2 text-right">Quantity</th>
+              <th class="p-2 text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+      cartItems.forEach(item => {
+        orderDetailsHtml += `
+          <tr>
+            <td class="p-2">${item.name}</td>
+            <td class="p-2 text-right">${item.price}</td>
+            <td class="p-2 text-right">${item.quantity}</td>
+            <td class="p-2 text-right">${item.total}</td>
+          </tr>`;
+      });
+
+      orderDetailsHtml += `
+          </tbody>
+        </table>`;
+
+      document.getElementById('order-details').innerHTML = orderDetailsHtml;
+      document.getElementById('order-modal').style.display = 'block';
+    }
+
+    function deleteAllCartItems() {
+      fetch('/cart/deleteAll', {
+        method: 'DELETE'
+      })
+              .then(response => {
+                if (response.ok) {
+                  window.location.href = '/';
+                }
+              });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll(".delete-btn").forEach(button => {
+        button.addEventListener("click", function () {
+          const row = button.closest("tr");
+          const cartItemId = row.dataset.id;
+
+          fetch(`/cart/delete/${cartItemId}`, {
+            method: "DELETE"
+          })
+                  .then(response => {
+                    if (response.ok) {
+                      row.remove();
+                      updateTotalPrice();
+                    }
+                  });
+        });
+      });
+
+      document.getElementById("update-cart-btn").addEventListener("click", function () {
+        const updates = [];
+        document.querySelectorAll(".quantity-input").forEach(input => {
+          const row = input.closest("tr");
+          const cartItemId = row.dataset.id;
+          const quantity = input.value;
+          updates.push({ id: cartItemId, quantity: quantity });
+        });
+
+        Promise.all(updates.map(update => {
+          return fetch(`/cart/update/${update.id}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ quantity: update.quantity })
+          });
+        }))
+                .then(responses => {
+                  if (responses.every(response => response.ok)) {
+                    updateTotalPrice();
+                  }
+                });
+      });
+
+      function updateTotalPrice() {
+        let totalPrice = 0;
+        document.querySelectorAll(".quantity-input").forEach(input => {
+          const price = parseFloat(input.closest("tr").querySelector("td:nth-child(2)").textContent);
+          const quantity = parseInt(input.value);
+          if (!isNaN(price) && !isNaN(quantity)) {
+            totalPrice += price * quantity;
+          }
+        });
+        document.getElementById("total-price").textContent = totalPrice.toFixed(2);
+      }
+
+      // Initial call to set the total price on page load
+      updateTotalPrice();
+    });
+
+    function closeModal() {
+      document.getElementById('order-modal').style.display = 'none';
+    }
+  </script>
 </head>
 <body class="bg-gray-100 font-sans">
 <!-- Navigation -->
-<header class="bg-green-500 text-white shadow-md">
-  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-    <div class="text-2xl font-bold">ShopEase</div>
+<header class="text-white shadow-md">
+  <div class="container mx-auto px-4 py-4 flex justify-between items-center relative">
+    <div class="text-2xl font-bold">
+      <a href="/"> T-Shop </a>
+    </div>
     <nav>
       <ul class="flex space-x-6">
         <li><a href="/" class="hover:text-green-200 transition">Home</a></li>
-        <li><a href="/categories" class="hover:text-green-200 transition">Categories</a></li>
+        <li class="dropdown">
+          <a class="hover:text-green-200 transition">Categories</a>
+          <div class="dropdown-menu">
+            <a href="/category/1">Books</a>
+            <a href="/category/2">Clothes</a>
+            <a href="/category/3">Mobile Phones</a>
+            <a href="/category/4">Laptops</a>
+            <a href="/category/5">Shoes</a>
+            <a href="/category/6">Electronics</a>
+          </div>
+        </li>
         <li><a href="/cart" class="bg-white text-green-500 px-3 py-1 rounded-full hover:bg-green-50 transition">Cart</a></li>
       </ul>
     </nav>
@@ -31,7 +255,10 @@
   <div class="grid md:grid-cols-2 gap-8">
     <!-- Cart Items -->
     <div class="bg-white rounded-lg shadow-md p-6">
-      <h2 class="text-2xl font-semibold mb-6 text-gray-800">Your Cart</h2>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold text-gray-800">Your Cart</h2>
+        <button id="update-cart-btn" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Update</button>
+      </div>
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead class="bg-gray-100">
@@ -56,24 +283,21 @@
             </td>
             <td class="p-3 text-center" th:text="${cartItem.product.price * cartItem.quantity}"></td>
             <td class="p-3 text-center">
-              <div class="flex space-x-2 justify-center">
-                <button class="update-btn bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Update</button>
-                <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">Delete</button>
-              </div>
+              <button class="delete-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">Delete</button>
             </td>
           </tr>
           </tbody>
         </table>
       </div>
       <div class="mt-6 text-right">
-        <h3 class="text-2xl font-bold text-gray-800">Total: $<span th:text="${totalPrice}"></span></h3>
+        <h3 class="text-2xl font-bold text-gray-800">Total: $<span id="total-price" th:text="${totalPrice}"></span></h3>
       </div>
     </div>
 
     <!-- Shipping Information -->
     <div class="bg-white rounded-lg shadow-md p-6">
       <h2 class="text-2xl font-semibold mb-6 text-gray-800">Shipping Information</h2>
-      <form action="/checkout" method="post" class="space-y-4">
+      <form onsubmit="handleCheckout(event)" class="space-y-4">
         <div>
           <label for="name" class="block mb-2">Full Name</label>
           <input type="text" id="name" name="name" required
@@ -136,59 +360,21 @@
   </div>
 </div>
 
+<!-- Order Details Modal -->
+<div id="order-modal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal()">&times;</span>
+    <h2 class="text-2xl font-semibold mb-4">Order Details</h2>
+    <div id="order-details" class="bg-gray-100 p-4 rounded"></div>
+    <button onclick="deleteAllCartItems()" class="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Back to Home Page</button>
+  </div>
+</div>
+
 <!-- Footer -->
 <footer class="bg-gray-800 text-white py-6 mt-8">
   <div class="container mx-auto text-center">
-    <p>&copy; 2024 ShopEase. All rights reserved.</p>
+    <p>&copy; 2024 T-Shop. All rights reserved.</p>
   </div>
 </footer>
-
-<script>
-  // JavaScript remains the same as in the original file
-  document.addEventListener("DOMContentLoaded", function () {
-    document.querySelectorAll(".delete-btn").forEach(button => {
-      button.addEventListener("click", function () {
-        const row = button.closest("tr");
-        const cartItemId = row.dataset.id;
-
-        fetch(`/cart/delete/${cartItemId}`, {
-          method: "DELETE"
-        })
-                .then(response => {
-                  if (response.ok) {
-                    row.remove();
-                    alert("Product removed from cart");
-                  } else {
-                    alert("Failed to remove product");
-                  }
-                });
-      });
-    });
-
-    document.querySelectorAll(".update-btn").forEach(button => {
-      button.addEventListener("click", function () {
-        const row = button.closest("tr");
-        const cartItemId = row.dataset.id;
-        const quantity = row.querySelector(".quantity-input").value;
-
-        fetch(`/cart/update/${cartItemId}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ quantity })
-        })
-                .then(response => {
-                  if (response.ok) {
-                    alert("Cart updated successfully");
-                    location.reload();
-                  } else {
-                    alert("Failed to update cart");
-                  }
-                });
-      });
-    });
-  });
-</script>
 </body>
 </html>

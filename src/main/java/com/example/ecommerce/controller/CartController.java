@@ -5,6 +5,7 @@ import com.example.ecommerce.entity.Cart;
 import com.example.ecommerce.entity.CartItem;
 import com.example.ecommerce.service.CartService;
 import com.example.ecommerce.repository.AppUserRepository;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
+@RequestMapping("/cart")
 public class CartController {
 
     @Autowired
@@ -24,69 +26,71 @@ public class CartController {
     @Autowired
     private AppUserRepository appUserRepository;
 
-    @GetMapping("/cart")
-    public String viewCart(Model model) {
-        // Đặt username mặc định là "admin"
-        String username = "admin";
-
-        // Tìm người dùng trong database bằng username
-        AppUser appUser = appUserRepository.findByUsername(username);
-        if (appUser == null) {
-            // Nếu không tìm thấy người dùng "admin", chuyển hướng về trang đăng nhập
+    @GetMapping
+    public String viewCart(Model model, HttpSession session) {  
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
             return "redirect:/login";
         }
 
-        // Lấy giỏ hàng của người dùng "admin"
-        Cart cart = cartService.getCartByUserId(username);
+        AppUser appUser = appUserRepository.findById(userId).orElse(null);
+        if (appUser == null) {
+            return "redirect:/login";
+        }
+
+        Cart cart = cartService.getCartByUserId(appUser.getId());
         if (cart == null) {
-            // Nếu không tìm thấy giỏ hàng của "admin", hiển thị thông báo giỏ hàng trống
-            model.addAttribute("message", "Giỏ hàng trống!");
+            model.addAttribute("message", "Your cart is empty!");
             model.addAttribute("cartItems", List.of());
-            model.addAttribute("totalPrice", 0);
+            model.addAttribute("totalPrice", BigDecimal.ZERO);
             return "cart";
         }
 
         List<CartItem> cartItems = cart.getCartItems();
+        BigDecimal totalPrice = cartItems.stream()
+                .map(cartItem -> cartItem.getProduct().getPrice().multiply(new BigDecimal(cartItem.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Tính tổng giá trị giỏ hàng
-        double totalPrice = cartItems.stream()
-                .mapToDouble(cartItem ->
-                        cartItem.getProduct().getPrice()
-                                .multiply(new BigDecimal(cartItem.getQuantity())) // Chuyển từ int sang BigDecimal
-                                .doubleValue()) // Chuyển kết quả thành double
-                .sum();
-
-        // Thêm giỏ hàng và tổng giá trị vào model
         model.addAttribute("cartItems", cartItems);
         model.addAttribute("totalPrice", totalPrice);
-        return "cart";  // Trả về view cart.html
+        return "cart";
     }
 
-    @PostMapping("/cart/add")
+    @PostMapping("/add")
     public ResponseEntity<String> addToCart(@RequestParam("productId") Long productId,
-                                            @RequestParam("quantity") int quantity) {
-        // Đặt username mặc định là "admin"
-        String username = "admin";
+                                            @RequestParam("quantity") int quantity,
+                                            HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).body("User not authenticated");
+        }
 
-        // Gọi service để thêm sản phẩm vào giỏ hàng
-        cartService.addToCart(username, productId, quantity);
-
-        // Trả về thông báo thành công
-        return ResponseEntity.ok("Sản phẩm đã được thêm vào giỏ hàng!");
+        cartService.addToCart(userId, productId, quantity);
+        return ResponseEntity.ok("Product added to cart!");
     }
 
-    @DeleteMapping("/cart/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteCartItem(@PathVariable Long id) {
-        // Xóa sản phẩm trong giỏ hàng
         cartService.deleteCartItem(id);
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/cart/update/{id}")
+    @PostMapping("/update/{id}")
     public ResponseEntity<Void> updateCartItem(@PathVariable Long id, @RequestBody Map<String, Integer> payload) {
-        // Cập nhật số lượng sản phẩm trong giỏ hàng
         int quantity = payload.get("quantity");
         cartService.updateCartItemQuantity(id, quantity);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/deleteAll")
+    public ResponseEntity<Void> deleteAllCartItems(HttpSession session) {
+        Long userId = (Long) session.getAttribute("userId");
+        if (userId == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        cartService.deleteAllCartItems(userId);
+        return ResponseEntity.ok().build();
+    }
+
 }

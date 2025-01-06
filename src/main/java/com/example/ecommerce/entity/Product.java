@@ -1,14 +1,12 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.Data;
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "products")
 public class Product {
 
@@ -32,5 +30,6 @@ public class Product {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    // Getters and Setters
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    private List<Comment> comments;
 }

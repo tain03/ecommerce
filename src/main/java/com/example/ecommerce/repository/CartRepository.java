@@ -7,5 +7,5 @@ import java.util.Optional;
 public interface CartRepository extends JpaRepository<Cart, Long> {
 
     // Tìm giỏ hàng của người dùng theo tên đăng nhập
-    Optional<Cart> findByUserUsername(String username);
+    Optional<Cart> findByUserId(Long userId);
 }

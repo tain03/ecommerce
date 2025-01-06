@@ -1,12 +1,14 @@
 package com.example.ecommerce.controller;
 
+import com.example.ecommerce.entity.Comment;
 import com.example.ecommerce.entity.Product;
+import com.example.ecommerce.entity.AppUser;
 import com.example.ecommerce.service.ProductService;
+import com.example.ecommerce.service.AppUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -16,7 +18,9 @@ public class HomeController {
     @Autowired
     private ProductService productService;
 
-    // Hiển thị tất cả sản phẩm trên trang chủ
+    @Autowired
+    private AppUserService appUserService;
+
     @GetMapping("/")
     public String home(Model model) {
         model.addAttribute("title", "ShopEase - Home");
@@ -30,7 +34,18 @@ public class HomeController {
         model.addAttribute("title", "ShopEase - Category");
         model.addAttribute("categoryId", categoryId);
         model.addAttribute("products", productService.getProductsByCategory(categoryId));
-        return "index";  // Có thể sử dụng lại trang index để hiển thị sản phẩm theo danh mục
+        return "index";
     }
-}
 
+    @GetMapping("/category/{categoryId}/{productId}")
+    public String getProductDetails(@PathVariable Long productId, Model model) {
+        Product product = productService.getProductById(productId);
+        List<Comment> comments = productService.getCommentsByProductId(productId);
+        model.addAttribute("title", "ShopEase - Product Details");
+        model.addAttribute("product", product);
+        model.addAttribute("comments", comments);
+        return "product-details";
+    }
+
+
+}

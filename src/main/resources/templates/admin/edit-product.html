@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Edit Product</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="container mx-auto px-4 py-8">
+    <h1 class="text-2xl font-bold mb-4">Edit Product</h1>
+    <form th:action="@{/admin/products/edit/{id}(id=${product.id})}" th:object="${product}" method="post" class="space-y-4">
+        <div>
+            <label for="name" class="block mb-2">Name</label>
+            <input type="text" id="name" name="name" th:field="*{name}" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <div>
+            <label for="price" class="block mb-2">Price</label>
+            <input type="number" id="price" name="price" th:field="*{price}" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <div>
+            <label for="description" class="block mb-2">Description</label>
+            <textarea id="description" name="description" th:field="*{description}" required class="w-full px-3 py-2 border rounded"></textarea>
+        </div>
+        <div>
+            <label for="imageUrl" class="block mb-2">Image URL</label>
+            <input type="text" id="imageUrl" name="imageUrl" th:field="*{imageUrl}" required class="w-full px-3 py-2 border rounded">
+        </div>
+        <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Update Product</button>
+    </form>
+</div>
+</body>
+</html>
